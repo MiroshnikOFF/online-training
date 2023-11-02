@@ -10,7 +10,11 @@ class LessonSerializer(serializers.ModelSerializer):
 
 
 class CourseSerializer(serializers.ModelSerializer):
+
+    # Количество уроков в курсе
     lessons_count = serializers.IntegerField(source='lesson.all.count', read_only=True)
+
+    # Список всех уроков курса
     lessons = LessonSerializer(source='lesson.all', many=True, read_only=True)
 
     class Meta:
