@@ -23,7 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
     
     def update(self, instance, validated_data):
-        """Обновляет пользователя входящими данными"""
+        """Обновляет пользователя входящими данными и устанавливает ему пароль"""
 
         instance = super().update(instance, validated_data)
         instance.set_password(validated_data['password'])
