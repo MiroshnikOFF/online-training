@@ -37,7 +37,6 @@ class LessonTestCase(APITestCase):
         )
         self.subscription.save()
 
-
     def test_create_lesson(self):
         """Тестирование создания урока"""
         data = {'title': 'test', 'course': self.course.pk}
@@ -84,17 +83,19 @@ class LessonTestCase(APITestCase):
         self.assertEqual(response.json()['description'], valid_data['description'])
         self.assertEqual(response.json()['video_url'], valid_data['video_url'])
 
+        # Проверка валидации поля ссылки на урок
         response = self.client.put(f'/lessons/{self.lesson.pk}/update/', invalid_video_url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {'non_field_errors': ['Неверный YouTube URL-адрес!']})
 
+        # Проверка валидации поля описания урока
         response = self.client.put(f'/lessons/{self.lesson.pk}/update/', invalid_description)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {'non_field_errors': ['В описании указан недопустимый URL!']})
-
         response = self.client.put(f'/lessons/{self.lesson.pk}/update/', valid_description)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        # Проверка валидации на обязательные поля
         response = self.client.put(f'/lessons/{self.lesson.pk}/update/', no_data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {'title': ['Обязательное поле.']})
@@ -113,13 +114,16 @@ class LessonTestCase(APITestCase):
         self.assertEqual(response.json()['course'], self.course.pk)
         self.assertEqual(response.json()['user'], self.user.__str__())
 
+        # Повторное создание уже существующей подписки
         response = self.client.post('/subscriptions/create/', data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json(), {'non_field_errors': ['Подписка уже существует']})
 
+        # Проверка признака подписки в курсе
         response = self.client.get(f'/{self.course.pk}/')
         self.assertEqual(response.json()['subscribed'], True)
 
+        # Проверка существования подписки в БД
         self.assertEqual(Subscription.objects.filter(pk=response.json()['id']).exists(), True)
 
     def test_subscription_delete(self):
@@ -127,7 +131,9 @@ class LessonTestCase(APITestCase):
         response = self.client.delete(f'/subscriptions/{self.subscription.pk}/delete/')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
+        # Проверка признака подписки в курсе
         response = self.client.get(f'/{self.course.pk}/')
         self.assertEqual(response.json()['subscribed'], False)
 
+        # Проверка существования подписки в БД
         self.assertEqual(Subscription.objects.filter(pk=response.json()['id']).exists(), False)
