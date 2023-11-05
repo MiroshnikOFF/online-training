@@ -24,7 +24,8 @@ class Lesson(models.Model):
     preview = models.ImageField(upload_to='courses/', verbose_name='Превью', **NULLABLE)
     description = models.TextField(verbose_name='Описание', **NULLABLE)
     video_url = models.URLField(verbose_name='Видео', **NULLABLE)
-    course = models.ForeignKey(Course, on_delete=models.SET_NULL, **NULLABLE, related_name='lesson', verbose_name='Курс')
+    course = models.ForeignKey(Course, on_delete=models.SET_NULL, **NULLABLE, related_name='lesson',
+                               verbose_name='Курс')
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, **NULLABLE, verbose_name='Владелец')
 
     def __str__(self):
@@ -53,3 +54,18 @@ class Payment(models.Model):
     class Meta:
         verbose_name = 'Платеж'
         verbose_name_plural = 'Платежи'
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, **NULLABLE,
+                             related_name='subscription', verbose_name='Пользователь')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='subscription', verbose_name='Курс')
+    subscribed = models.BooleanField(default=False, verbose_name='Признак подписки')
+
+    def __str__(self):
+        return f"{self.subscribed} - {self.course} - {self.user}"
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        ordering = ('pk',)
