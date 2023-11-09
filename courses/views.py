@@ -88,11 +88,13 @@ class PaymentCreateAPIView(generics.CreateAPIView):
     serializer_class = PaymentSerializer
 
     def post(self, request, *args, **kwargs):
+        """Создает намерение платежа с помощью Stripe"""
+
         super().post(request, *args, **kwargs)
         return create_intent(request)
 
     def perform_create(self, serializer):
-        """Сохраняет авторизованного пользователя в объекте платежа"""
+        """Сохраняет авторизованного пользователя и stripe id в объекте платежа"""
 
         new_payment = serializer.save()
         new_payment.user = self.request.user
@@ -105,6 +107,8 @@ class PaymentRetrieveAPIView(generics.RetrieveAPIView):
     queryset = Payment.objects.all()
 
     def get(self, request, *args, **kwargs):
+        """Выводит данные о платеже с помощью Stripe"""
+
         return get_intent(kwargs['pk'])
 
 
