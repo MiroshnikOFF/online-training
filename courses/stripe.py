@@ -16,20 +16,6 @@ def create_customer(user):
     return customer
 
 
-def create_product(course):
-    product = stripe.Product.create(name=course.title)
-    return product
-
-
-def create_price(course):
-    price = stripe.Price.create(
-        unit_amount=course.price,
-        currency=course.currency,
-        product=create_product(course.title).id,
-    )
-    return price.id
-
-
 def create_intent(request):
     intent = stripe.PaymentIntent.create(
         amount=request.data['total_paid'],
