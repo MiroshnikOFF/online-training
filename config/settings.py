@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'stripe',
     'drf_yasg',
+    'corsheaders',
 
     'users',
     'courses',
@@ -77,6 +78,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -161,3 +163,12 @@ SUPERUSER_LAST_NAME = os.getenv('SUPERUSER_LAST_NAME')
 SUPERUSER_PASSWORD = os.getenv('SUPERUSER_PASSWORD')
 
 STRIPE_API_KEY = os.getenv('STRIPE_API_KEY')
+
+CORS_ALLOWED_ORIGINS = [
+    "https://read-only.example.com",
+    "https://read-and-write.example.com",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://read-and-write.example.com",
+]
