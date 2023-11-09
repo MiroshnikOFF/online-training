@@ -1,4 +1,5 @@
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, status
+from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
@@ -7,12 +8,12 @@ from courses.models import Course, Lesson, Payment, Subscription
 from courses.pagination import CoursesLessonsPaginator
 from courses.permissions import IsNotModeratorForViewSet, IsOwner, IsNotModeratorForAPIView
 from courses.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, SubscriptionSerializer
+from courses.stripe import create_intent, get_intent
 
 
 class CourseViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, IsNotModeratorForViewSet,)
     serializer_class = CourseSerializer
-    # queryset = Course.objects.all()
     pagination_class = CoursesLessonsPaginator
 
     def perform_create(self, serializer):
@@ -81,6 +82,30 @@ class PaymentListAPIView(generics.ListAPIView):
     filter_backends = [OrderingFilter, DjangoFilterBackend]
     ordering_fields = ('date',)
     filterset_fields = ('course', 'lesson', 'method',)
+
+
+class PaymentCreateAPIView(generics.CreateAPIView):
+    serializer_class = PaymentSerializer
+
+    def post(self, request, *args, **kwargs):
+        super().post(request, *args, **kwargs)
+        return create_intent(request)
+
+    def perform_create(self, serializer):
+        """Сохраняет авторизованного пользователя в объекте платежа"""
+
+        new_payment = serializer.save()
+        new_payment.user = self.request.user
+        new_payment.stripe_id = create_intent(self.request).data['intent']['id']
+        new_payment.save()
+
+
+class PaymentRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = PaymentSerializer
+    queryset = Payment.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        return get_intent(kwargs['pk'])
 
 
 class SubscriptionCreateAPIView(generics.CreateAPIView):
