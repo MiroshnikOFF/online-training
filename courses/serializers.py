@@ -5,7 +5,6 @@ from courses.validators import DescriptionValidator, VideoUrlValidator
 
 
 class LessonSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Lesson
         fields = '__all__'
@@ -18,10 +17,8 @@ class LessonSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     # Количество уроков в курсе
     lessons_count = serializers.IntegerField(source='lesson.all.count', read_only=True)
-
     # Список всех уроков курса
     lessons = LessonSerializer(source='lesson.all', many=True, read_only=True)
-
     # Признак подписки на курс
     subscribed = serializers.SerializerMethodField()
 
@@ -42,6 +39,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Payment
         fields = '__all__'
@@ -63,4 +61,3 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         if Subscription.objects.filter(user=user, course=course).exists():
             raise serializers.ValidationError("Подписка уже существует")
         return attrs
-
