@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'rest_framework_simplejwt',
+    'stripe',
 
     'users',
     'courses',
@@ -157,3 +158,5 @@ SUPERUSER_EMAIL = os.getenv('SUPERUSER_EMAIL')
 SUPERUSER_FIRST_NAME = os.getenv('SUPERUSER_FIRST_NAME')
 SUPERUSER_LAST_NAME = os.getenv('SUPERUSER_LAST_NAME')
 SUPERUSER_PASSWORD = os.getenv('SUPERUSER_PASSWORD')
+
+STRIPE_API_KEY = os.getenv('STRIPE_API_KEY')
