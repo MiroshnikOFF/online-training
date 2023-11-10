@@ -7,8 +7,8 @@ from courses.models import Course, Lesson, Payment, Subscription
 from courses.pagination import CoursesLessonsPaginator
 from courses.permissions import IsNotModeratorForViewSet, IsOwner, IsNotModeratorForAPIView
 from courses.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, SubscriptionSerializer
+from courses.services import send_notification
 from courses.stripe import create_intent, get_intent
-from courses.tasks import send_notification_task
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -34,15 +34,7 @@ class CourseViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         """При обновлении курса высылает уведомление пользователю при активной подписке"""
         course = Course.objects.get(pk=kwargs['pk'])
-        if Subscription.objects.filter(course=course).exists():
-            subscriptions = Subscription.objects.filter(course=course)
-            recipient_list = []
-            for sub in subscriptions:
-                recipient_list.append(sub.user.email)
-            send_notification_task.delay(
-                course_title=course.title,
-                recipient_list=recipient_list
-            )
+        send_notification(course)
         return super().update(request, *args, **kwargs)
 
 
@@ -56,6 +48,12 @@ class LessonCreateAPIView(generics.CreateAPIView):
         new_lesson = serializer.save()
         new_lesson.owner = self.request.user
         new_lesson.save()
+
+    def create(self, request, *args, **kwargs):
+        if 'course' in request.data:
+            course = Course.objects.get(pk=request.data['course'])
+            send_notification(course)
+        return super().create(request, *args, **kwargs)
 
 
 class LessonListAPIView(generics.ListAPIView):
