@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from rest_framework import viewsets, generics
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -52,7 +54,11 @@ class LessonCreateAPIView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         if 'course' in request.data:
             course = Course.objects.get(pk=request.data['course'])
-            send_notification(course)
+            delta = datetime.now() - course.last_update.replace(tzinfo=None)
+            if delta > timedelta(hours=4):
+                send_notification(course)
+            course.last_update = datetime.now()
+            course.save()
         return super().create(request, *args, **kwargs)
 
 
@@ -80,6 +86,17 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated, IsOwner,)
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        lesson = Lesson.objects.get(pk=kwargs['pk'])
+        if lesson.course:
+            course = Course.objects.get(pk=lesson.course.pk)
+            delta = datetime.now() - course.last_update.replace(tzinfo=None)
+            if delta > timedelta(hours=4):
+                send_notification(course)
+            course.last_update = datetime.now()
+            course.save()
+        return super().update(request, *args, **kwargs)
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
