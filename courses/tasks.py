@@ -4,22 +4,21 @@ from django.core.mail import send_mail
 from celery import shared_task
 
 from config import settings
-from courses.models import Subscription
 from users.models import User
 
 
 @shared_task
-def send_notification_task(user_pk, course_pk, course_title, user_email):
+def send_notification_task(course_title, recipient_list):
     """
     Рассылает письма пользователям об обновлении материалов курса при активной подписке.
     """
-    if Subscription.objects.filter(user=user_pk, course=course_pk).exists():
-        send_mail(
-            subject=f'Обновления в курсе {course_title}!',
-            message=f'В курсе {course_title} произошли обновления, посетите наш сайт.',
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[user_email]
-        )
+    send_mail(
+        subject=f'Обновления в курсе {course_title}!',
+        message=f'В курсе {course_title} произошли обновления, посетите наш сайт.',
+        from_email=settings.EMAIL_HOST_USER,
+        recipient_list=recipient_list
+    )
+
 
 
 @shared_task

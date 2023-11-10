@@ -3,7 +3,6 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
 
-from config import settings
 from courses.models import Course, Lesson, Payment, Subscription
 from courses.pagination import CoursesLessonsPaginator
 from courses.permissions import IsNotModeratorForViewSet, IsOwner, IsNotModeratorForAPIView
@@ -34,14 +33,16 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         """При обновлении курса высылает уведомление пользователю при активной подписке"""
-
         course = Course.objects.get(pk=kwargs['pk'])
-        send_notification_task.delay(
-            user_pk=request.user.pk,
-            course_pk=course.pk,
-            course_title=course.title,
-            user_email=request.user.email
-        )
+        if Subscription.objects.filter(course=course).exists():
+            subscriptions = Subscription.objects.filter(course=course)
+            recipient_list = []
+            for sub in subscriptions:
+                recipient_list.append(sub.user.email)
+            send_notification_task.delay(
+                course_title=course.title,
+                recipient_list=recipient_list
+            )
         return super().update(request, *args, **kwargs)
 
 
