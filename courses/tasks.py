@@ -20,7 +20,6 @@ def send_notification_task(course_title, recipient_list):
     )
 
 
-
 @shared_task
 def check_user_last_login_task():
     """
