@@ -9,15 +9,17 @@ services:
 
   db:
     image: postgres
-    environment:
-      POSTGRES_DB: online_training
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 0000
-      PGDATA: /var/lib/postgresql/data/pgdata
+#    environment:
+#      POSTGRES_DB: online_training
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: postgres
+#      PGDATA: /var/lib/postgresql/data/pgdata
+    env_file:
+      - .env_docker
     volumes:
       - ./pg_data:/var/lib/postgresql/data/pgdata
     ports:
-      - '5433:5432'
+      - '5432:5432'
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
       interval: 10s
@@ -47,11 +49,10 @@ services:
   celery_beat:
     build: .
     tty: true
-    command: celery -A config beat -l info -S django
+    command: sh -c "python manage.py migrate && celery -A config beat -l info -S django"
     depends_on:
       - redis
       - app
-
 
 volumes:
   pg_data:

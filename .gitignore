@@ -1,5 +1,6 @@
 .idea
 venv
 .env
+.env_docker
 .coverage
 pg_data/
