@@ -4,3 +4,4 @@ venv
 .env_docker
 .coverage
 pg_data/
+celerybeat-schedule.db
