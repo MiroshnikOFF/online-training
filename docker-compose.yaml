@@ -44,10 +44,11 @@ services:
   celery_beat:
     build: .
     tty: true
-    command: sh -c "python manage.py migrate && celery -A config beat -l info -S django"
+    command: celery -A config beat -l info -S django
     depends_on:
       - redis
       - app
+    restart: always
 
 volumes:
   pg_data:
